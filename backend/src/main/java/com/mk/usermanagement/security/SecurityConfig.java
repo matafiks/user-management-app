@@ -1,14 +1,13 @@
 package com.mk.usermanagement.security;
 
-import com.mk.usermanagement.entity.User;
 import com.mk.usermanagement.filter.JwtAuthFilter;
 import com.mk.usermanagement.repository.UserRepository;
 import com.mk.usermanagement.service.JwtService;
-import com.mk.usermanagement.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -17,12 +16,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
@@ -36,13 +31,15 @@ public class SecurityConfig {
                         user.getPassword(),
                         user.getRoles().stream()
                                 .map(role -> new SimpleGrantedAuthority(role.getName()))
-                                .toList()))
+                                .toList()
+                ))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+
     @Bean
-    public JwtAuthFilter jwtAuthFilter(UserService userService, JwtService jwtService) {
-        return new JwtAuthFilter(userService, jwtService);
+    public JwtAuthFilter jwtAuthFilter(UserDetailsService userDetailsService, JwtService jwtService) {
+        return new JwtAuthFilter(userDetailsService, jwtService);
     }
 
     @Bean
@@ -59,6 +56,17 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
 

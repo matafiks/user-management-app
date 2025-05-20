@@ -1,18 +1,26 @@
 package com.mk.usermanagement.service;
 
+import com.mk.usermanagement.dto.AuthResponseDto;
+import com.mk.usermanagement.dto.UserDto;
+import com.mk.usermanagement.dto.UserLoginRequest;
+import com.mk.usermanagement.dto.UserRegisterRequest;
 import com.mk.usermanagement.entity.User;
 
 import java.util.List;
 
 public interface UserService {
 
-    User save(User user);
+    void register(UserRegisterRequest registerRequest);
 
-    User findById(Long id);
+    AuthResponseDto login(UserLoginRequest loginRequest);
 
-    List<User> findAll();
+    UserDto save(User user);
+
+    UserDto findById(Long id);
+
+    List<UserDto> findAll();
 
     void deleteById(Long id);
 
-    User findByUsername(String username);
+    UserDto update(User user);
 }
