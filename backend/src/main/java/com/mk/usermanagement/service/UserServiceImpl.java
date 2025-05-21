@@ -1,9 +1,6 @@
 package com.mk.usermanagement.service;
 
-import com.mk.usermanagement.dto.AuthResponseDto;
-import com.mk.usermanagement.dto.UserDto;
-import com.mk.usermanagement.dto.UserLoginRequest;
-import com.mk.usermanagement.dto.UserRegisterRequest;
+import com.mk.usermanagement.dto.*;
 import com.mk.usermanagement.entity.Role;
 import com.mk.usermanagement.entity.RoleName;
 import com.mk.usermanagement.entity.User;
@@ -16,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,15 +86,47 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto save(User user) {
-        // TODO: Implement
-        return null;
+    public void createUserByAdmin(CreateUserRequest request) {
+        // sprawdź czy w bazie istnieje już user z przekazanym username lub email
+        if (userRepository.existsByUsername(request.username()) || userRepository.existsByEmail(request.email())) {
+            throw new UsernameAlreadyExistsException("Username or email is already taken");
+        }
+
+        // wyciągnij przekazane role (upewniając się że takie role istnieją w bazie) i zapisz je do zbioru roles
+        Set<Role> roles = request.roles().stream()
+                .map(roleName -> roleService.findByName(roleName.toUpperCase()))
+                .collect(Collectors.toSet());
+
+        System.out.println(roles);
+
+        /*// stwórz nowego użytkownika na podstawie przekazanych danych z requestu
+        User user = new User();
+        user.setUsername(request.username());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setRoles(roles);
+        user.setEnabled(true);
+
+        // zapisz nowego użytkownika
+        userRepository.save(user);*/
     }
 
     @Override
     public UserDto findById(Long id) {
-        // TODO: Implement
-        return null;
+
+        User dbUser = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+
+        Set<String> roles = dbUser.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
+
+        return new UserDto(
+                dbUser.getId(),
+                dbUser.getUsername(),
+                dbUser.getEmail(),
+                roles
+        );
     }
 
     @Override

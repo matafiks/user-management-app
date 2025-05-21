@@ -1,4 +1,11 @@
 package com.mk.usermanagement.dto;
 
-public class UserDto {
+import java.util.Set;
+
+public record UserDto(
+        Long id,
+        String username,
+        String email,
+        Set<String> roles
+) {
 }

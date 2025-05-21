@@ -28,8 +28,8 @@ public class JwtService {
                 .toList());
 
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
                 .setClaims(claims)
+                .setSubject(((UserDetails) authentication.getPrincipal()).getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
                 .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), SignatureAlgorithm.HS256)

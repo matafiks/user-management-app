@@ -17,10 +17,8 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
 
-    public JwtAuthFilter(UserDetailsService userDetailsService, JwtService jwtService) {
-        this.userDetailsService = userDetailsService;
+    public JwtAuthFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
 
@@ -39,14 +37,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String username = jwtService.extractUsername(token);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.isTokenValid(token, userDetails.getUsername())) {
+            if (jwtService.isTokenValid(token, username)) {
+
                 var authorities = jwtService.extractRoles(token).stream()
                         .map(SimpleGrantedAuthority::new)
                         .toList();
 
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+                        new UsernamePasswordAuthenticationToken(username, null, authorities);
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
