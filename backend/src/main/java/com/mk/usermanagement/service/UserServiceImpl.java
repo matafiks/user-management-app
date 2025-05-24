@@ -54,8 +54,6 @@ public class UserServiceImpl implements UserService {
         user.setEnabled(true);
         user.setRoles(Set.of(role));
 
-        //TODO: replace with save(user) once its implemented
-        // zapisz użytkownika do bazy danych
         userRepository.save(user);
     }
 
@@ -97,9 +95,7 @@ public class UserServiceImpl implements UserService {
                 .map(roleName -> roleService.findByName(roleName.toUpperCase()))
                 .collect(Collectors.toSet());
 
-        System.out.println(roles);
-
-        /*// stwórz nowego użytkownika na podstawie przekazanych danych z requestu
+        // stwórz nowego użytkownika na podstawie przekazanych danych z requestu
         User user = new User();
         user.setUsername(request.username());
         user.setEmail(request.email());
@@ -108,19 +104,22 @@ public class UserServiceImpl implements UserService {
         user.setEnabled(true);
 
         // zapisz nowego użytkownika
-        userRepository.save(user);*/
+        userRepository.save(user);
     }
 
     @Override
     public UserDto findById(Long id) {
 
+        // wyszukaj usera w bazie na podstawie przekazanego id
         User dbUser = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
 
+        // wyciągnij jego role
         Set<String> roles = dbUser.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toSet());
 
+        // zwróć tylko te dane które naprawdę potrzeba w formie Dto
         return new UserDto(
                 dbUser.getId(),
                 dbUser.getUsername(),
@@ -131,19 +130,76 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> findAll() {
-        // TODO: Implement
-        return List.of();
+
+        // ponieważ nie chcę zwracać całej encji User, wyciągam z niej tylko id, username, email oraz role i zwracam jako listę UserDto
+        return userRepository.findAll().stream()
+                .map(user -> new UserDto(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getRoles().stream()
+                                .map(Role::getName)
+                                .collect(Collectors.toSet())
+                ))
+                .toList();
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
-        // TODO: Implement
 
+        // sprawdź czy user o zadanym id istnieje w bazie
+        User dbUser = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+
+        // sprawdź czy przypadkiem zalogowany użytkownik nie chce usunąć samego siebie - nie pozwalam na to
+        String loggedUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (loggedUser.equals(dbUser.getUsername())) {
+            throw new IllegalArgumentException("Cannot delete your own account");
+        }
+
+        // usuń użytkownika z bazy
+        userRepository.delete(dbUser);
     }
 
     @Override
-    public UserDto update(User user) {
-        // TODO: Implement
-        return null;
+    @Transactional
+    public void update(Long id, UpdateUserRequest request) {
+
+        // sprawdź czy user o zadanym id istnieje w bazie
+        User dbUser = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + request.username()));
+
+        // przypisz znalezionemu uzytkownikowi nowe dane
+        dbUser.setUsername(request.username());
+        dbUser.setEmail(request.email());
+
+        if (request.roles() != null && !request.roles().isEmpty()) {
+            Set<Role> roles = request.roles().stream()
+                    .map(roleService::findByName)
+                    .collect(Collectors.toSet());
+            dbUser.setRoles(roles);
+        }
+
+        // zapisz zaktualizwanego użytkownika do bazy
+        userRepository.save(dbUser);
+    }
+
+    @Override
+    public UserDto findByUsername(String username) {
+
+        // sprawdź czy user o zadanym username istnieje w bazie
+        User dbUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Username " + username + " was not found."));
+
+        // zwróć tylko UserDto
+        return new UserDto(
+                dbUser.getId(),
+                dbUser.getUsername(),
+                dbUser.getEmail(),
+                dbUser.getRoles().stream()
+                        .map(role -> role.getName())
+                        .collect(Collectors.toSet())
+        );
     }
 }

@@ -31,7 +31,7 @@ public record CreateUserRequest(
         """
         )
         String password,
-        @NotBlank(message = "Roles are required")
+
         @NotNull(message = "Roles are required")
         Set<String> roles
 ) {

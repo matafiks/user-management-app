@@ -1,6 +1,7 @@
 package com.mk.usermanagement.controller;
 
 import com.mk.usermanagement.dto.CreateUserRequest;
+import com.mk.usermanagement.dto.UpdateUserRequest;
 import com.mk.usermanagement.dto.UserDto;
 import com.mk.usermanagement.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,14 +23,12 @@ public class UserController {
 
     // dodawanie użytkownika
     @Operation(summary = "Add new user")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<String> createUser(@Valid @RequestBody CreateUserRequest request) {
 
-        System.out.println("CreatingUser");
-
         userService.createUserByAdmin(request);
-        return new ResponseEntity<>("User created successfully", HttpStatus.OK);
+        return new ResponseEntity<>("New user has been created.", HttpStatus.OK);
     }
 
     // wyświetl użytkownika po id
@@ -42,29 +41,26 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/test")
-    public String testujemy() {
-
-//        userService.createUserByAdmin();
-
-        return "jest git";
-    }
-
     // wyświetl listę użytkowników
     @Operation(summary = "Get all users")
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserDto>> getAllUsers() {
-        // TODO: implement
 
-        return new ResponseEntity<>(List.of(), HttpStatus.OK);
+        return new ResponseEntity<>(userService.findAll(), HttpStatus.OK);
     }
 
     // edycja użytkownika
     @Operation(summary = "Update existing user")
     @PutMapping("/{userId}")
-    public ResponseEntity<String> updateUser(@PathVariable Long userId) {
-        // TODO: implement
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> updateUser(@PathVariable Long userId, @Valid @RequestBody UpdateUserRequest request) {
+
+        System.out.println("Trying to update user");
+
+        System.out.println(request);
+
+        userService.update(userId, request);
 
         return new ResponseEntity<>("Successfully updated user.", HttpStatus.OK);
     }
@@ -73,9 +69,19 @@ public class UserController {
     @Operation(summary = "Delete user by Id")
     @DeleteMapping("/{userId}")
     public ResponseEntity<String> deleteUserById(@PathVariable Long userId) {
-        // TODO: implement
+
+        userService.deleteById(userId);
 
         return new ResponseEntity<>("Successfully deleted user", HttpStatus.OK);
     }
+
+    @Operation(summary = "Get user by username")
+    @GetMapping("/by-username/{username}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDto> getUserByUsername(@PathVariable String username) {
+
+        return new ResponseEntity<>(userService.findByUsername(username), HttpStatus.OK);
+    }
+
 
 }
