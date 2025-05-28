@@ -1,7 +1,6 @@
 package com.mk.usermanagement.service;
 
 import com.mk.usermanagement.dto.*;
-import com.mk.usermanagement.entity.User;
 
 import java.util.List;
 

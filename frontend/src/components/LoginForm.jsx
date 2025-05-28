@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginForm() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [message, setMessage] = useState(null);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,8 +25,8 @@ export default function LoginForm() {
 
       if (response.ok) {
         setMessage("✅ Login successful!");
-        localStorage.setItem("token", data.token); // zapis JWT
-        // Można przekierować np. na dashboard
+        localStorage.setItem("token", data.token); // zapis JWT w local storage
+        navigate("/dashboard");
       } else {
         setMessage("❌ Login failed: " + (data.message || "Invalid credentials"));
       }
