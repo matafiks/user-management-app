@@ -56,5 +56,7 @@ The application allows users to register, log in, view the user list, and perfor
 │ └── ... 
 ├── .gitignore 
 ├── LICENSE 
-└── README.md </code>
+└── README.md
+└── create_database.sql # SQL code to create database
+└── start-all.bat # Script to automatically run both frontend and backend at once </code>
 </pre>

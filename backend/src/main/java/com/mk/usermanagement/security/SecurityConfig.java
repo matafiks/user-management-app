@@ -60,7 +60,6 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(Customizer.withDefaults());
-        // TODO: add logout
 
         return http.build();
     }

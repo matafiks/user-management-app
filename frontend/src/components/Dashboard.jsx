@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import UserList from "./UserList";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [userInfo, setUserInfo] = useState(null);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -41,6 +49,9 @@ export default function Dashboard() {
 
   return (
     <div className="container mt-5">
+      <button className="btn btn-outline-danger float-end" onClick={handleLogout}>
+        Logout
+      </button>
       <h2>Welcome, 👑{userInfo.username}!</h2>
       <p>Email: {userInfo.email}</p>
 

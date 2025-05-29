@@ -25,7 +25,7 @@ export default function LoginForm() {
 
       if (response.ok) {
         setMessage("✅ Login successful!");
-        localStorage.setItem("token", data.token); // zapis JWT w local storage
+        localStorage.setItem("token", data.token); // zapisywanie JWT w local storage
         navigate("/dashboard");
       } else {
         setMessage("❌ Login failed: " + (data.message || "Invalid credentials"));
